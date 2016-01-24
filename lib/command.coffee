@@ -66,7 +66,9 @@ runner = ->
     usePolling: usePolling
   })
 
-  path = resolve(process.argv[2] || '.')
+  path = (process.argv[2] || '.')
+    .split(/\s*,\s*/)
+    .map((x)->resolve(x))
   console.log "Starting LiveReload v#{version} for #{path} on port #{port}."
   server.watch(path)
 
