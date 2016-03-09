@@ -47,7 +47,7 @@ runner = ->
   ].reverse(), true
 
   port = opts.get('port') || 35729
-  exclusions = opts.get('exclusions') || []
+  exclusions = if opts.get('exclusions') then opts.get('exclusions' ).split(',' ).map((s) -> new RegExp(s)) else []
   exts = (opts.get('exts') || '').split ' '
   
   server = livereload.createServer({
