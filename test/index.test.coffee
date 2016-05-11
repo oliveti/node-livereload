@@ -6,6 +6,7 @@ url = require 'url'
 fs = require 'fs'
 path = require 'path'
 WebSocket = require 'ws'
+sinon = require 'sinon'
 
 describe 'livereload http file serving', ->
 
@@ -75,6 +76,48 @@ describe 'livereload http file serving', ->
       done()
 
 describe 'livereload file watching', ->
+  describe "config.delay", ->
+    tmpFile = clock = server = refresh = undefined
+
+    beforeEach ->
+      tmpFile = path.join(__dirname, "tmp.js")
+      fs.writeFileSync(tmpFile, "use strict;", "utf-8")
+
+    beforeEach (done) ->
+      server = livereload.createServer({delay: 2000})
+      refresh = sinon.spy(server, "refresh")
+      server.watch(__dirname)
+      # must wait for chokidar it seems
+      setTimeout(done, 6000)
+
+    afterEach ->
+      fs.unlinkSync(tmpFile)
+
+    it 'should send a refresh message after `config.delay` milliseconds', (done) ->
+      # modified this method from chokidar specs
+      waitFor = (spy, cb) ->
+        spyIsReady = (spy) ->
+          spy.callCount > 0
+        finish = ->
+          clearTimeout($to)
+          clearInterval($int)
+          cb()
+          cb = Function.prototype
+        $int = setInterval(
+          ->
+            if(spyIsReady(spy))
+              finish()
+          5
+        )
+        $to = setTimeout(finish, 3000)
+
+      refresh.callCount.should.be.exactly(0)
+      fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+
+      waitFor(refresh, ->
+        refresh.callCount.should.be.exactly(1)
+        done()
+      )
 
   it 'should correctly watch common files', ->
     # TODO check it watches default exts
