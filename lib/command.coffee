@@ -51,12 +51,20 @@ runner = ->
       required: false,
       value: true
     }
+    {
+      short: "w"
+      long: "wait"
+      description: "delay message of file system changes to browser by `delay` milliseconds"
+      required: false
+      value: true
+    }
   ].reverse(), true
 
   port = opts.get('port') || 35729
   exclusions = opts.get('exclusions') || []
   exts = (opts.get('exts') || '').split ' '
   usePolling = opts.get('usepolling') || false
+  wait = opts.get('wait') || 0;
 
   server = livereload.createServer({
     port: port
@@ -64,6 +72,7 @@ runner = ->
     exclusions: exclusions,
     exts: exts
     usePolling: usePolling
+    delay: wait
   })
 
   path = resolve(process.argv[2] || '.')
