@@ -78,8 +78,14 @@ class Server
     exts = @config.exts
     fileext = path.extname filepath
                   .substring 1
+
     for ext in exts when ext == fileext
-      @refresh filepath
+      delayedRefresh = setTimeout(
+        =>
+          clearTimeout(delayedRefresh)
+          @refresh filepath
+        @config.delay
+      )
       break
 
   refresh: (filepath) ->
