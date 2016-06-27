@@ -79,45 +79,65 @@ describe 'livereload file watching', ->
   describe "config.delay", ->
     tmpFile = clock = server = refresh = undefined
 
+    # modified this method from chokidar specs
+    waitFor = (duration, spy, cb) ->
+      spyIsReady = (spy) ->
+        spy.callCount > 0
+      finish = ->
+        clearTimeout($to)
+        clearInterval($int)
+        cb()
+        cb = Function.prototype
+      $int = setInterval(
+        ->
+          if(spyIsReady(spy))
+            finish()
+        5
+      )
+      $to = setTimeout(finish, duration)
+
     beforeEach ->
       tmpFile = path.join(__dirname, "tmp.js")
       fs.writeFileSync(tmpFile, "use strict;", "utf-8")
 
-    beforeEach (done) ->
-      server = livereload.createServer({delay: 2000})
-      refresh = sinon.spy(server, "refresh")
-      server.watch(__dirname)
-      # must wait for chokidar it seems
-      setTimeout(done, 6000)
-
     afterEach ->
       fs.unlinkSync(tmpFile)
 
-    it 'should send a refresh message after `config.delay` milliseconds', (done) ->
-      # modified this method from chokidar specs
-      waitFor = (spy, cb) ->
-        spyIsReady = (spy) ->
-          spy.callCount > 0
-        finish = ->
-          clearTimeout($to)
-          clearInterval($int)
-          cb()
-          cb = Function.prototype
-        $int = setInterval(
-          ->
-            if(spyIsReady(spy))
-              finish()
-          5
+    describe 'when `config.delay` is set', ->
+      beforeEach (done) ->
+        server = livereload.createServer({delay: 2000, port: 5050})
+        refresh = sinon.spy(server, "refresh")
+        server.watch(__dirname)
+        # must wait for chokidar it seems
+        setTimeout(done, 6000)
+
+      it 'should send a refresh message after `config.delay` milliseconds', (done) ->
+        refresh.callCount.should.be.exactly(0)
+        fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+
+        waitFor(3000, refresh, ->
+          refresh.callCount.should.be.exactly(1)
+          done()
         )
-        $to = setTimeout(finish, 3000)
 
-      refresh.callCount.should.be.exactly(0)
-      fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+    describe 'when `config.delay` is 0 or unset', ->
+      beforeEach (done) ->
+        server = livereload.createServer({delay: 0, port: 2020})
+        refresh = sinon.spy(server, "refresh")
+        server.watch(__dirname)
+        # must wait for chokidar it seems
+        setTimeout(done, 6000)
 
-      waitFor(refresh, ->
-        refresh.callCount.should.be.exactly(1)
-        done()
-      )
+      it 'should send a refresh message near immediately if `config.delay` is falsey`', (done) ->
+        refresh.reset()
+        refresh.callCount.should.be.exactly(0)
+        fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+
+        waitFor(100, refresh, ->
+           refresh.callCount.should.be.exactly(1)
+          done()
+        )
+
 
   it 'should correctly watch common files', ->
     # TODO check it watches default exts

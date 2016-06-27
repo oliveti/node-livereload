@@ -80,12 +80,15 @@ class Server
                   .substring 1
 
     for ext in exts when ext == fileext
-      delayedRefresh = setTimeout(
-        =>
-          clearTimeout(delayedRefresh)
-          @refresh filepath
-        @config.delay
-      )
+      if @config.delay
+        delayedRefresh = setTimeout(
+          =>
+            clearTimeout(delayedRefresh)
+            @refresh filepath
+          @config.delay
+        )
+      else
+        @refresh filepath
       break
 
   refresh: (filepath) ->
