@@ -114,7 +114,7 @@ Then, assuming your HTML file has a stylesheet link like this:
 ```html
 <!-- html -->
 <head>
-    <link rel="stylesheet" href="http://domain.com/css/style.css">
+  <link rel="stylesheet" href="http://domain.com/css/style.css">
 </head>
 ```
 
@@ -128,12 +128,12 @@ The commandline options are
 * `-d` or `--debug` to show debug messages when the browser reloads.
 * `-e` or `--exts` to include additional extentions that you want to observe. An example being -e 'jade scss'.
 * `-u` or `--usepolling` to poll for file system changes. Set this to true to successfully watch files over a network.
-* `-w` or `--wait` to add a delay between when livereload detects a change to the filesystem and when it notifies the browser
+* `-w` or `--wait` to add a delay (in miliseconds) between when livereload detects a change to the filesystem and when it notifies the browser
 
 Specify the path when using the options.
 
 ~~~
-$ livereload . -i 200
+$ livereload . -w 1000 -d
 ~~~
 
 
@@ -152,12 +152,12 @@ The `createServer()` method supports a few basic options, passed as a JavaScript
 * `originalPath` Set URL you use for development, e.g 'http:/domain.com', then LiveReload will proxy this url to local path.
 * `overrideURL` lets you specify a different host for CSS files. This lets you edit local CSS files but view a live site. See <http://feedback.livereload.com/knowledgebase/articles/86220-preview-css-changes-against-a-live-site-then-uplo> for details.
 * `usePolling` Poll for file system changes. Set this to true to successfully watch files over a network.
-* `delay` add a delay between when livereload detects a change to the filesystem and when it notifies the browser. Useful if the browser is reloading/refreshing before a file has been compiled, for example, by browserify.
+* `delay` add a delay (in miliseconds) between when livereload detects a change to the filesystem and when it notifies the browser. Useful if the browser is reloading/refreshing before a file has been compiled, for example, by browserify.
 
 
 
 # License
 
-Copyright (c) 2010-2014 Brian P. Hogan and Joshua Peek
+Copyright (c) 2010-2016 Brian P. Hogan and Joshua Peek
 
 Released under the MIT license. See `LICENSE` for details.
