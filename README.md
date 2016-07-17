@@ -89,6 +89,12 @@ Passing an array of paths or glob patterns will allow you to watch multiple dire
 server.watch([__dirname + "/js", __dirname + "/css"]);
 ```
 
+Command line:
+
+```sh
+$ livereload "path1, path2, path3"
+```
+
 ## Using the `originalPath` option:
 
 ```js
@@ -120,7 +126,7 @@ The commandline options are
 
 * `-p` or `--port` to specify the listening port
 * `-d` or `--debug` to show debug messages when the browser reloads.
-* `-e` or `--exts` to include additional extentions that you want to observe. An example being -e 'jade scss'.  
+* `-e` or `--exts` to include additional extentions that you want to observe. An example being -e 'jade scss'.
 * `-u` or `--usepolling` to poll for file system changes. Set this to true to successfully watch files over a network.
 
 Specify the path when using the options.
