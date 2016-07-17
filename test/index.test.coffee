@@ -6,6 +6,7 @@ url = require 'url'
 fs = require 'fs'
 path = require 'path'
 WebSocket = require 'ws'
+sinon = require 'sinon'
 
 describe 'livereload http file serving', ->
 
@@ -75,6 +76,75 @@ describe 'livereload http file serving', ->
       done()
 
 describe 'livereload file watching', ->
+  describe "config.delay", ->
+    tmpFile = tmpFile2 = clock = server = refresh = undefined
+
+    beforeEach (done) ->
+      tmpFile = path.join(__dirname, "tmp.js")
+      tmpFile2 = path.join(__dirname, "tmp2.js")
+      fs.writeFileSync(tmpFile, "use strict;", "utf-8")
+      fs.writeFileSync(tmpFile2, "use strict;", "utf-8")
+      # ample time for files to have been written in between tests
+      setTimeout(done, 1000)
+
+    afterEach (done) ->
+      server.close()
+      server = undefined
+      # ample time for chokidar process to die in between tests
+      setTimeout(done, 1000)
+
+    after ->
+      fs.unlinkSync(tmpFile)
+      fs.unlinkSync(tmpFile2)
+
+    describe 'when set', ->
+      beforeEach (done) ->
+        server = livereload.createServer({delay: 2000, port: 12345})
+        refresh = sinon.spy(server, "refresh")
+        server.watch(__dirname)
+        server.watcher.on('ready', done)
+
+      it 'should send a refresh message after `config.delay` milliseconds', (done) ->
+        refresh.callCount.should.be.exactly(0)
+        fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+
+        # not called yet
+        setTimeout(->
+          refresh.callCount.should.be.exactly(0)
+        , 1500)
+
+        # called after set delay
+        setTimeout(->
+          refresh.callCount.should.be.exactly(1)
+          done()
+        , 3000)
+
+      it 'should only set the timeout/refresh for files that have been changed', (done) ->
+        refresh.callCount.should.be.exactly(0)
+        fs.writeFileSync(tmpFile2, "use strict; var a = 2;", "utf-8")
+
+        setTimeout(->
+          refresh.callCount.should.be.exactly(1)
+          done()
+        , 3000)
+
+    describe 'when not set or set to 0', ->
+      beforeEach (done) ->
+        server = livereload.createServer({delay: 0, port: 22345})
+        refresh = sinon.spy(server, "refresh")
+        server.watch(__dirname)
+        server.watcher.on('ready', done)
+
+      it 'should send a refresh message near immediately if `config.delay` is falsey`', (done) ->
+        refresh.callCount.should.be.exactly(0)
+        fs.writeFileSync(tmpFile, "use strict; var a = 1;", "utf-8")
+
+        # still called after next tick, but without artificial delay
+        setTimeout(->
+          refresh.callCount.should.be.exactly(1)
+          done()
+        , 500)
+
 
   it 'should correctly watch common files', ->
     # TODO check it watches default exts
